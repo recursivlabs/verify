@@ -96,8 +96,11 @@ export function ConnectAgent() {
               <input value={endpointUrl} onChange={(e) => setEndpointUrl(e.target.value)} placeholder="https://api.yourcompany.com/agent" className={inputCls} />
             </Field>
             <div className="rounded-lg border border-line bg-bg p-3 font-mono text-[11px] text-muted">
-              <div className="mb-1 text-faint">// we’ll POST tasks as {'{ input, message }'} and read the reply</div>
-              <div>npm i @recursiv/verify   <span className="text-faint">// SDK connector — coming soon</span></div>
+              <div className="mb-1.5 text-faint">// 1. we probe the endpoint to verify behavior</div>
+              <div className="mb-2.5 text-faint">// 2. route your agent’s tool calls through Recursiv to enforce + log every action:</div>
+              <div className="text-ink">point your MCP tool endpoint at</div>
+              <div className="text-accent">https://verify.on.recursiv.io/api/gateway</div>
+              <div className="mt-1.5 text-faint">// runs in your VPC too — payloads never leave your network</div>
             </div>
           </>
         )}
