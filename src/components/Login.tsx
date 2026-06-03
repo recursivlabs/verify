@@ -1,10 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 export function Login() {
-  const router = useRouter();
   const [stage, setStage] = useState<'email' | 'code'>('email');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
@@ -43,8 +41,8 @@ export function Login() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Invalid code');
-      router.push('/dashboard');
-      router.refresh();
+      // Full-page navigation so the just-set session cookie is sent on the next request.
+      window.location.href = '/dashboard';
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Something went wrong');
     } finally {
