@@ -1,5 +1,4 @@
 import { cookies } from 'next/headers';
-import { anonSdk } from './recursiv';
 import { SESSION_COOKIE } from './constants';
 
 export interface SessionUser {
@@ -8,21 +7,38 @@ export interface SessionUser {
   email: string;
 }
 
+// Origin of the auth server (strip the /api/v1 SDK suffix).
+const AUTH_ORIGIN = (process.env.NEXT_PUBLIC_RECURSIV_URL || 'https://api.recursiv.io/api/v1').replace(/\/api\/v1\/?$/, '');
+
+/**
+ * Validate a session token against better-auth's get-session.
+ * The platform sets secure cookies, so the real cookie name is
+ * `__Secure-better-auth.session_token`. The SDK's getSession sends the plain
+ * name and fails — so we call get-session directly under both names.
+ */
+async function fetchSession(tokenValue: string): Promise<{ id: string; name?: string; email?: string } | null> {
+  try {
+    const res = await fetch(`${AUTH_ORIGIN}/api/auth/get-session`, {
+      headers: {
+        Cookie: `__Secure-better-auth.session_token=${tokenValue}; better-auth.session_token=${tokenValue}`,
+      },
+      cache: 'no-store',
+    });
+    const data = res.ok ? await res.json().catch(() => null) : null;
+    console.log('[verify-auth] get-session', res.status, 'user', data?.user?.id || 'NONE');
+    if (!res.ok) return null;
+    return data?.user?.id ? data.user : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Current user from the session cookie (server-side). Null if not signed in. */
 export async function getSessionUser(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
-  if (!token) {
-    console.log('[verify-auth] no session cookie');
-    return null;
-  }
-  try {
-    const session = await anonSdk.auth.getSession(token);
-    console.log('[verify-auth] tokenLen', token.length, 'user', session?.user?.id || 'NONE');
-    if (!session?.user?.id) return null;
-    return { id: session.user.id, name: session.user.name || '', email: session.user.email || '' };
-  } catch (e) {
-    console.log('[verify-auth] getSession threw', e instanceof Error ? e.message : e);
-    return null;
-  }
+  if (!token) return null;
+  const user = await fetchSession(token);
+  if (!user) return null;
+  return { id: user.id, name: user.name || '', email: user.email || '' };
 }
