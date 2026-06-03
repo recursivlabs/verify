@@ -42,7 +42,7 @@ export default async function Dashboard() {
     for (const p of perAgent.length ? perAgent : [{ statuses: checkStatuses(null) as Record<string, CheckStatus> }]) {
       for (const code of codes) {
         const s = p.statuses[code];
-        if (s === 'pass' || s === 'fail') { total++; if (s === 'pass') pass++; }
+        if (s === 'pass' || s === 'fail' || s === 'soon') { total++; if (s === 'pass') pass++; }
       }
     }
     return { ...d, pass, total };

@@ -24,9 +24,8 @@ async function fetchSession(tokenValue: string): Promise<{ id: string; name?: st
       },
       cache: 'no-store',
     });
-    const data = res.ok ? await res.json().catch(() => null) : null;
-    console.log('[verify-auth] get-session', res.status, 'user', data?.user?.id || 'NONE');
     if (!res.ok) return null;
+    const data = await res.json().catch(() => null);
     return data?.user?.id ? data.user : null;
   } catch {
     return null;

@@ -94,10 +94,16 @@ export function checkStatuses(run: { reliability: number; nRuns: number } | null
   return out;
 }
 
-/** Compliance headline: share of in-scope (live + eval) checks passing. */
+/**
+ * Compliance headline: of the agent-level AIUC-1 controls that apply, how many are
+ * currently VERIFIED as met. "soon" (not-yet-built) controls count as not-yet-verified
+ * gaps so the score reflects real coverage and can't round up to a misleading 100.
+ * Governance ('na' from gov) and official-audit ('na' from external) controls are excluded
+ * — they're the customer's GRC and the auditor's responsibility, shown separately.
+ */
 export function complianceScore(statuses: Record<string, CheckStatus>): { pct: number; passing: number; total: number } {
-  const scored = Object.values(statuses).filter((s) => s === 'pass' || s === 'fail');
-  const passing = scored.filter((s) => s === 'pass').length;
-  const total = scored.length || 1;
-  return { pct: Math.round((passing / total) * 100), passing, total: scored.length };
+  const inScope = Object.values(statuses).filter((s) => s === 'pass' || s === 'fail' || s === 'soon');
+  const passing = inScope.filter((s) => s === 'pass').length;
+  const total = inScope.length || 1;
+  return { pct: Math.round((passing / total) * 100), passing, total: inScope.length };
 }
