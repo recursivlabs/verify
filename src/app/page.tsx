@@ -20,22 +20,22 @@ export default async function Home() {
           <div className="max-w-xl">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-panel px-3 py-1 font-mono text-xs text-muted">
               <span className="live-dot h-1.5 w-1.5 rounded-full bg-accent" />
-              ISO/IEC 42001 · agent evidence
+              AIUC-1 · the standard for AI agents
             </div>
             <h1 className="text-balance text-4xl font-semibold leading-[1.1] text-ink sm:text-5xl">
-              Prove your agents are <span className="text-accent">trustworthy</span> enough to close the deal.
+              Prove your AI agents meet the <span className="text-accent">AIUC-1</span> standard.
             </h1>
             <p className="mt-5 text-pretty text-base leading-relaxed text-muted">
-              Your GRC tool can attest to policy. It can’t prove what an agent actually did, or what it’s
-              allowed to do. Recursiv generates that evidence from inside the runtime: continuous evals,
-              attributable action logs, and human oversight. The AI-system controls that pass a security review.
+              The fastest way to get audit-ready, and stay that way. Recursiv checks your agents against
+              AIUC-1 every day and gives you the evidence your auditor needs. The runtime checks a
+              compliance tool can’t run on its own.
             </p>
             <ul className="mt-7 space-y-2.5 text-sm text-muted">
               {[
-                'Continuous evals — reliability + quality on a tailored suite',
-                'Action log — every tool call, attributable to a stable agent identity',
-                'Oversight — permission scoping + approval gates on risky actions',
-                'A shareable attestation mapped to ISO 42001 controls',
+                'Checks every agent against the AIUC-1 standard',
+                'Tests daily that it does its job correctly and safely',
+                'Confirms it only takes actions it’s allowed to',
+                'A shareable report your auditor can use',
               ].map((t) => (
                 <li key={t} className="flex items-start gap-2.5">
                   <svg className="mt-0.5 h-4 w-4 flex-none text-accent" viewBox="0 0 20 20" fill="none">
