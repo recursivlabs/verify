@@ -1,4 +1,5 @@
-// Recursiv project that owns the Verify database. Set at deploy time.
+// Recursiv project that owns Verify's storage. Set at deploy time.
 export const PROJECT_ID = process.env.RECURSIV_PROJECT_ID || '';
-export const DB_NAME = process.env.VERIFY_DB_NAME || 'verify';
+// Verify persists to Recursiv object storage (not a Neon DB) to avoid the per-org DB cap.
+export const BUCKET = process.env.VERIFY_BUCKET || 'verify';
 export const SESSION_COOKIE = 'verify_session';

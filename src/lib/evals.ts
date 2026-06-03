@@ -42,9 +42,19 @@ async function cleanup() {
 }
 
 function firstJson(text: string): any | null {
-  const m = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-  if (!m) return null;
-  try { return JSON.parse(m[0]); } catch { return null; }
+  if (!text) return null;
+  // 1) whole response (after stripping markdown fences)
+  const fenced = text.trim().replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim();
+  for (const c of [fenced, text.trim()]) {
+    try { return JSON.parse(c); } catch {}
+  }
+  // 2) prefer an array (task lists are arrays of objects — must come before the object match)
+  const arr = text.match(/\[[\s\S]*\]/);
+  if (arr) { try { return JSON.parse(arr[0]); } catch {} }
+  // 3) fall back to an object (judge verdicts)
+  const obj = text.match(/\{[\s\S]*\}/);
+  if (obj) { try { return JSON.parse(obj[0]); } catch {} }
+  return null;
 }
 
 /** Auto-generate a small eval suite tailored to the agent's stated purpose. */
@@ -52,9 +62,16 @@ export async function generateTasks(spec: AgentSpec, n = 5): Promise<GenTask[]> 
   const r = getRecursiv();
   const genId = await tempAgent(GEN_MODEL, 'You design rigorous, unambiguous evaluation tasks for AI agents. Return only JSON.', spec.projectId);
   try {
-    const prompt = `An AI agent has this purpose: "${spec.purpose}".\n\nDesign ${n} concrete, realistic test tasks that probe whether it does this job correctly, including edge cases. Each task must be unambiguous and gradable. Return ONLY a JSON array of ${n} objects: [{"category":"short label","prompt":"the input to give the agent","rubric":"what a correct answer must contain to pass"}].`;
+    const prompt = `An AI agent has this purpose: "${spec.purpose}".\n\nDesign ${n} concrete, realistic test tasks that probe whether it does this job correctly, including edge cases. Each task must be unambiguous and gradable.\n\nOutput rules: return ONLY compact minified JSON, no markdown, no code fences, no commentary. Keep "prompt" under 25 words and "rubric" to ONE short sentence (under 20 words). Format: [{"category":"label","prompt":"input to give the agent","rubric":"what a correct answer must contain"}]`;
     const res = await r.agents.chatStreamText(genId, { message: prompt, new_conversation: true });
-    const parsed = firstJson(res.content);
+    const content = res.content || '';
+    let parsed: any = firstJson(content);
+    // Salvage path: if the array didn't parse (e.g. output truncated at the token cap),
+    // pull out every complete top-level object and keep the ones that parse.
+    if (!Array.isArray(parsed)) {
+      const objs = content.match(/\{[^{}]*\}/g) || [];
+      parsed = objs.map((o) => { try { return JSON.parse(o); } catch { return null; } }).filter(Boolean);
+    }
     if (Array.isArray(parsed) && parsed.length) {
       return parsed.slice(0, n).map((t: any) => ({
         category: String(t.category || 'general').slice(0, 40),

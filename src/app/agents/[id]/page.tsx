@@ -4,7 +4,7 @@ import { getSessionUser } from '@/lib/session';
 import { TopBar } from '@/components/Brand';
 import { Stamp } from '@/components/ui';
 import { RunCheck } from '@/components/RunCheck';
-import { getAgent, latestRun, runResults } from '@/lib/agents';
+import { getAgent, latestRun } from '@/lib/agents';
 import { DOMAINS, checksByDomain, checkStatuses, complianceScore, type Check, type CheckStatus } from '@/lib/aiuc1';
 
 export const dynamic = 'force-dynamic';
@@ -22,7 +22,7 @@ export default async function AgentReport({
   if (!agent) notFound();
 
   const run = await latestRun(agent.id);
-  const results = run ? await runResults(run.id) : [];
+  const results = run?.results ?? [];
   const runShape = run ? { reliability: run.reliability, nRuns: run.nRuns } : null;
   const statuses = checkStatuses(runShape);
   const score = complianceScore(statuses);

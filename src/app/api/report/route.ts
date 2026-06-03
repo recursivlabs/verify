@@ -1,5 +1,5 @@
 import { getSessionUser } from '@/lib/session';
-import { listAgents, latestRun, runResults } from '@/lib/agents';
+import { listAgents, latestRun } from '@/lib/agents';
 import { DOMAINS, checksByDomain, checkStatuses, complianceScore } from '@/lib/aiuc1';
 
 export const dynamic = 'force-dynamic';
@@ -19,7 +19,7 @@ export async function GET() {
   const sections: string[] = [];
   for (const a of agents) {
     const run = await latestRun(a.id);
-    const results = run ? await runResults(run.id) : [];
+    const results = run?.results ?? [];
     const statuses = checkStatuses(run ? { reliability: run.reliability, nRuns: run.nRuns } : null);
     const score = complianceScore(statuses);
     const passed = results.filter((r) => r.pass).length;

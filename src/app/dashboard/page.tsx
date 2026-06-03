@@ -12,8 +12,16 @@ export default async function Dashboard() {
   const user = await getSessionUser();
   if (!user) redirect('/');
 
-  const agents = await listAgents(user.id);
-  const runs = await latestRuns(agents.map((a) => a.id));
+  let agents: Awaited<ReturnType<typeof listAgents>> = [];
+  let dbError = false;
+  try {
+    agents = await listAgents(user.id);
+  } catch {
+    dbError = true;
+  }
+  const runs: Awaited<ReturnType<typeof latestRuns>> = agents.length
+    ? await latestRuns(agents.map((a) => a.id)).catch(() => ({}))
+    : {};
 
   // per-agent statuses + compliance
   const perAgent = agents.map((a) => {
