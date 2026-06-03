@@ -12,12 +12,17 @@ export interface SessionUser {
 export async function getSessionUser(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
-  if (!token) return null;
+  if (!token) {
+    console.log('[verify-auth] no session cookie');
+    return null;
+  }
   try {
     const session = await anonSdk.auth.getSession(token);
+    console.log('[verify-auth] tokenLen', token.length, 'user', session?.user?.id || 'NONE');
     if (!session?.user?.id) return null;
     return { id: session.user.id, name: session.user.name || '', email: session.user.email || '' };
-  } catch {
+  } catch (e) {
+    console.log('[verify-auth] getSession threw', e instanceof Error ? e.message : e);
     return null;
   }
 }
