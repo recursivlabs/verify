@@ -26,7 +26,6 @@ export default async function AgentReport({
   const runShape = run ? { reliability: run.reliability, nRuns: run.nRuns } : null;
   const statuses = checkStatuses(runShape);
   const score = complianceScore(statuses);
-  const fails = Object.values(statuses).filter((s) => s === 'fail').length;
 
   const passedTests = results.filter((r) => r.pass).length;
   const today = new Date().toISOString().slice(0, 10);
@@ -52,10 +51,12 @@ export default async function AgentReport({
             <div className="mt-4">
               {!run ? (
                 <span className="text-sm text-muted">Not checked yet — run the first check.</span>
-              ) : fails > 0 ? (
-                <span className="text-warn">⚠ {fails} issue{fails > 1 ? 's' : ''} — passing {score.passing} of {score.total} checks</span>
+              ) : score.mandatoryGaps > 0 ? (
+                <span className="text-warn">⚠ Not yet audit-ready — {score.mandatoryGaps} mandatory gap{score.mandatoryGaps > 1 ? 's' : ''} · passing {score.passing} of {score.total} checks</span>
+              ) : score.pct >= 90 ? (
+                <span className="text-pass">● Audit-ready — passing {score.passing} of {score.total} checks</span>
               ) : (
-                <span className="text-pass">● Compliant — passing {score.passing} of {score.total} checks</span>
+                <span className="text-info">On track — passing {score.passing} of {score.total} checks</span>
               )}
             </div>
           </div>
@@ -128,16 +129,26 @@ function CheckRow({ check, status }: { check: Check; status: CheckStatus }) {
     check.coverage === 'soon' ? 'soon' :
     check.coverage === 'gov' ? 'governance' :
     check.coverage === 'external' ? 'audited quarterly' : '';
+  const showFix = (status === 'fail' || status === 'soon' || (status === 'na' && check.coverage === 'gov')) && check.fix;
   return (
-    <div className="flex items-start justify-between gap-2 text-sm">
-      <div className="flex items-start gap-2">
-        <span className="mt-0.5 w-3 flex-none text-center">{icon}</span>
-        <span className={status === 'soon' || status === 'na' ? 'text-faint' : 'text-ink'}>{check.label}</span>
+    <div className="text-sm">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start gap-2">
+          <span className="mt-0.5 w-3 flex-none text-center">{icon}</span>
+          <span className={status === 'soon' || status === 'na' ? 'text-faint' : 'text-ink'}>{check.label}</span>
+          {check.mandatory && <span className="mt-0.5 rounded bg-line px-1 font-mono text-[9px] uppercase text-muted">req</span>}
+        </div>
+        <div className="flex flex-none items-center gap-2">
+          {tag && <span className="font-mono text-[10px] text-faint">{tag}</span>}
+          <span className="font-mono text-[10px] text-faint">{check.code}</span>
+        </div>
       </div>
-      <div className="flex flex-none items-center gap-2">
-        {tag && <span className="font-mono text-[10px] text-faint">{tag}</span>}
-        <span className="font-mono text-[10px] text-faint">{check.code}</span>
-      </div>
+      {showFix && (
+        <div className="ml-5 mt-1 flex items-start gap-1.5 rounded-md border border-line bg-bg/60 px-2 py-1.5 text-[12px] text-muted">
+          <span className="text-accent">→</span>
+          <span>{check.fix}</span>
+        </div>
+      )}
     </div>
   );
 }

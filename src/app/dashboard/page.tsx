@@ -106,12 +106,14 @@ export default async function Dashboard() {
                     <div className="mt-0.5 text-xs text-faint">{p.agent.purpose}</div>
                   </div>
                   <div className="flex items-center gap-5">
-                    {p.fails > 0 ? (
-                      <span className="text-xs text-warn">⚠ {p.fails} issue{p.fails > 1 ? 's' : ''}</span>
-                    ) : p.run ? (
-                      <span className="text-xs text-pass">● Compliant</span>
-                    ) : (
+                    {!p.run ? (
                       <span className="text-xs text-muted">ready to check</span>
+                    ) : p.score.mandatoryGaps > 0 ? (
+                      <span className="text-xs text-warn">⚠ {p.score.mandatoryGaps} mandatory gap{p.score.mandatoryGaps > 1 ? 's' : ''}</span>
+                    ) : p.score.pct >= 90 ? (
+                      <span className="text-xs text-pass">● audit-ready</span>
+                    ) : (
+                      <span className="text-xs text-info">on track</span>
                     )}
                     <span className="tabular w-8 text-right font-mono text-sm text-ink">{p.run ? p.score.pct : '—'}</span>
                     <span className="text-faint">→</span>

@@ -41,7 +41,7 @@ export function Stamp({ score, date, attestId }: { score: number; date: string; 
         <span className="font-mono text-[11px] uppercase leading-tight tracking-wide text-accent">Continuously<br />verified</span>
       </div>
       <div className="mt-3 font-mono text-3xl text-ink tabular">{score}</div>
-      <div className="mt-0.5 text-xs text-muted">compliance score</div>
+      <div className="mt-0.5 text-xs text-muted">AIUC-1 readiness</div>
       <div className="mt-3 space-y-0.5 border-t border-line pt-2 font-mono text-[10px] text-faint">
         <div>AIUC-1 · {date}</div>
         <div>by Recursiv · {attestId}</div>

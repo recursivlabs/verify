@@ -37,7 +37,7 @@ export async function GET() {
       <section>
         <h2>${esc(a.name)}</h2>
         <p class="meta">${esc(a.purpose)} · model ${esc(a.model)} · risk tier ${esc(a.riskTier)}</p>
-        <p class="score">Compliance ${run ? score.pct : '—'} — passing ${score.passing} of ${score.total} in-scope checks
+        <p class="score">AIUC-1 readiness ${run ? score.pct : '—'} — passing ${score.passing} of ${score.total} in-scope checks${run && score.mandatoryGaps > 0 ? ` · ${score.mandatoryGaps} mandatory gap(s)` : ''}
           ${run ? `· behavioral tests passed ${passed}/${results.length}` : '· not yet checked'}</p>
         ${domains}
       </section>`);
