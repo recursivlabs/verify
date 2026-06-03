@@ -23,6 +23,7 @@ export interface Agent {
   systemPrompt: string;
   endpointUrl?: string | null; // optional: call the customer's own deployed agent
   riskTier: 'high' | 'limited' | 'minimal'; // EU AI Act risk classification
+  guardrail?: boolean; // Recursiv guardrail enabled (in-path enforcement)
   createdAt: string;
 }
 

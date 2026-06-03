@@ -25,6 +25,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         systemPrompt: agent.systemPrompt,
         endpointUrl: agent.endpointUrl,
         projectId: PROJECT_ID,
+        guardrail: agent.guardrail,
       },
       { runsPerTask: 2 },
     );

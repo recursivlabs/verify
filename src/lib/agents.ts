@@ -30,6 +30,7 @@ export async function createAgent(input: {
   systemPrompt: string;
   endpointUrl?: string | null;
   riskTier?: Agent['riskTier'];
+  guardrail?: boolean;
 }): Promise<Agent> {
   const agent: Agent = {
     id: randomUUID(),
@@ -40,10 +41,18 @@ export async function createAgent(input: {
     systemPrompt: input.systemPrompt,
     endpointUrl: input.endpointUrl || null,
     riskTier: input.riskTier || 'limited',
+    guardrail: input.guardrail ?? false,
     createdAt: new Date().toISOString(),
   };
   await putJson(agentKey(input.ownerId, agent.id), agent);
   return agent;
+}
+
+/** Flip the Recursiv guardrail on/off for an agent. */
+export async function setGuardrail(agent: Agent, on: boolean): Promise<Agent> {
+  const updated = { ...agent, guardrail: on };
+  await putJson(agentKey(agent.orgId, agent.id), updated);
+  return updated;
 }
 
 /** Most recent run for an agent (with results inline), or null. */

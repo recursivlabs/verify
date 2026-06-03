@@ -84,16 +84,23 @@ export function checksByDomain(domain: Domain): Check[] {
  * eval-dependent checks read from the run; other live checks reflect platform primitives in place;
  * soon = not built; gov/external = not in Verify's runtime scope.
  */
+// Enforcement-class controls live IN the action path — they're only met once the agent's
+// tool calls are routed through the Recursiv gateway. Until then they're real gaps.
+export const ENFORCEMENT = new Set(['E011', 'E005', 'E007', 'B006', 'B007', 'B004', 'C004', 'C005', 'A004']);
+
 export function checkStatuses(
   run: { reliability: number; nRuns: number } | null,
   controls?: { code: string; passed: boolean }[],
+  gatewayConnected?: boolean,
 ): Record<string, CheckStatus> {
   const measured = new Map((controls || []).map((c) => [c.code, c.passed]));
   const out: Record<string, CheckStatus> = {};
   const evalDependent = new Set(['D001', 'C002']);
   for (const c of CHECKS) {
     if (measured.has(c.code)) {
-      out[c.code] = measured.get(c.code) ? 'pass' : 'fail'; // measured from real agent behavior
+      out[c.code] = measured.get(c.code) ? 'pass' : 'fail'; // measured from real agent behavior (probes)
+    } else if (ENFORCEMENT.has(c.code)) {
+      out[c.code] = gatewayConnected ? 'pass' : 'fail'; // enforced only when routed through Recursiv
     } else if (c.coverage === 'soon') out[c.code] = 'soon';
     else if (c.coverage === 'gov' || c.coverage === 'external') out[c.code] = 'na';
     else if (evalDependent.has(c.code)) {

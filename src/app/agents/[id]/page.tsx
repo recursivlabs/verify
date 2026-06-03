@@ -4,9 +4,11 @@ import { getSessionUser } from '@/lib/session';
 import { TopBar } from '@/components/Brand';
 import { Stamp } from '@/components/ui';
 import { RunCheck } from '@/components/RunCheck';
+import { RunScenario } from '@/components/RunScenario';
 import { getAgent, latestRun } from '@/lib/agents';
 import { DOMAINS, checksByDomain, checkStatuses, complianceScore, type Check, type CheckStatus } from '@/lib/aiuc1';
 import type { ControlResult } from '@/lib/evals';
+import { readActions, verifyChain, type ActionRecord } from '@/lib/gateway';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,8 +26,11 @@ export default async function AgentReport({
 
   const run = await latestRun(agent.id);
   const results = run?.results ?? [];
+  const actions = await readActions(agent.id);
+  const gatewayConnected = actions.length > 0;
+  const chainOk = gatewayConnected && verifyChain(actions);
   const runShape = run ? { reliability: run.reliability, nRuns: run.nRuns } : null;
-  const statuses = checkStatuses(runShape, run?.controls);
+  const statuses = checkStatuses(runShape, run?.controls, gatewayConnected);
   const controlByCode = new Map((run?.controls || []).map((c) => [c.code, c]));
   const score = complianceScore(statuses);
 
@@ -61,6 +66,19 @@ export default async function AgentReport({
                 <span className="text-info">On track — passing {score.passing} of {score.total} checks</span>
               )}
             </div>
+            {gatewayConnected ? (
+              <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-accent-dim bg-panel px-3 py-1.5 text-xs text-accent shadow-glow">
+                🛡 Routed through Recursiv — {actions.length} action{actions.length > 1 ? 's' : ''} enforced &amp; logged
+              </div>
+            ) : (
+              <div className="mt-4 max-w-lg rounded-xl border border-line bg-panel p-4">
+                <div className="text-sm text-ink">This agent’s actions aren’t routed through Recursiv yet.</div>
+                <div className="mt-1 text-xs text-muted">
+                  Its action controls — logging, per-action authorization, human gates — are unmet because nothing’s enforcing them. Route the agent’s tool calls through the Recursiv gateway and they’re enforced + evidenced on every action.
+                </div>
+                <div className="mt-3"><RunScenario agentId={agent.id} label="▶ Route through Recursiv & run a customer request" /></div>
+              </div>
+            )}
           </div>
           {run && <Stamp score={score.pct} date={today} attestId={attestId} />}
         </div>
@@ -105,18 +123,53 @@ export default async function AgentReport({
           </section>
         )}
 
-        {/* What it did — honest roadmap state */}
+        {/* What it did — real, enforced, tamper-evident action log */}
         <section className="mt-8">
-          <h2 className="font-mono text-sm text-muted">What it did</h2>
-          <div className="mt-3 rounded-xl border border-dashed border-line bg-panel/40 p-5">
-            <div className="text-sm text-muted">
-              Action logging turns on when you route this agent’s actions through Recursiv.
-              Every tool call becomes a tamper-evident, attributable record (AIUC-1 E011).
-            </div>
-            <div className="mt-1 font-mono text-[11px] text-faint">enforcement connector — coming soon</div>
+          <div className="flex items-center justify-between">
+            <h2 className="font-mono text-sm text-muted">What it did</h2>
+            {gatewayConnected && (
+              <span className={`font-mono text-[11px] ${chainOk ? 'text-pass' : 'text-fail'}`}>
+                {chainOk ? '✓ tamper-evident · hash chain verified' : '⚠ hash chain broken'}
+              </span>
+            )}
           </div>
+          {gatewayConnected ? (
+            <div className="mt-3 overflow-hidden rounded-xl border border-line bg-panel">
+              {actions.map((a) => <ActionRow key={a.seq} a={a} />)}
+              <div className="flex items-center justify-between gap-3 border-t border-line px-5 py-3">
+                <span className="font-mono text-[11px] text-faint">{actions.length} actions · every call authorized + hash-chained (AIUC-1 E011 · B006 · C004)</span>
+                <RunScenario agentId={agent.id} label="↻ Run another request" />
+              </div>
+            </div>
+          ) : (
+            <div className="mt-3 rounded-xl border border-dashed border-line bg-panel/40 p-5 text-sm text-muted">
+              No actions recorded yet. Route this agent through the Recursiv gateway (above) and every tool call becomes a tamper-evident, attributable record (AIUC-1 E011).
+            </div>
+          )}
         </section>
       </main>
+    </div>
+  );
+}
+
+function ActionRow({ a }: { a: ActionRecord }) {
+  const badge =
+    a.decision === 'allowed' ? <span className="rounded bg-pass/10 px-1.5 py-0.5 text-[10px] text-pass">allowed</span> :
+    a.decision === 'held_for_approval' ? <span className="rounded bg-warn/10 px-1.5 py-0.5 text-[10px] text-warn">held · human approval</span> :
+    <span className="rounded bg-fail/10 px-1.5 py-0.5 text-[10px] text-fail">blocked</span>;
+  const argStr = Object.entries(a.args).map(([k, v]) => `${k}: ${typeof v === 'string' ? v : JSON.stringify(v)}`).join(', ');
+  return (
+    <div className="border-b border-line px-5 py-3 last:border-b-0">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <span className="font-mono text-[11px] text-faint">{String(a.seq).padStart(2, '0')}</span>
+          <span className="font-mono text-sm text-ink">{a.tool}</span>
+          {argStr && <span className="truncate font-mono text-[11px] text-muted">({argStr})</span>}
+        </div>
+        {badge}
+      </div>
+      <div className="mt-1 pl-7 text-[12px] text-muted">{a.reason}</div>
+      <div className="mt-0.5 pl-7 font-mono text-[10px] text-faint">hash {a.hash.slice(0, 16)}… · prev {a.prevHash.slice(0, 8)}…</div>
     </div>
   );
 }
