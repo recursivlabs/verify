@@ -26,7 +26,7 @@ export default async function Dashboard() {
   // per-agent statuses + compliance
   const perAgent = agents.map((a) => {
     const run = runs[a.id] ? { reliability: runs[a.id].reliability, nRuns: runs[a.id].nRuns } : null;
-    const statuses = checkStatuses(run);
+    const statuses = checkStatuses(run, runs[a.id]?.controls);
     const score = complianceScore(statuses);
     const fails = Object.values(statuses).filter((s) => s === 'fail').length;
     return { agent: a, run: runs[a.id] || null, statuses, score, fails };

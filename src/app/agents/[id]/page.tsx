@@ -6,6 +6,7 @@ import { Stamp } from '@/components/ui';
 import { RunCheck } from '@/components/RunCheck';
 import { getAgent, latestRun } from '@/lib/agents';
 import { DOMAINS, checksByDomain, checkStatuses, complianceScore, type Check, type CheckStatus } from '@/lib/aiuc1';
+import type { ControlResult } from '@/lib/evals';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +25,8 @@ export default async function AgentReport({
   const run = await latestRun(agent.id);
   const results = run?.results ?? [];
   const runShape = run ? { reliability: run.reliability, nRuns: run.nRuns } : null;
-  const statuses = checkStatuses(runShape);
+  const statuses = checkStatuses(runShape, run?.controls);
+  const controlByCode = new Map((run?.controls || []).map((c) => [c.code, c]));
   const score = complianceScore(statuses);
 
   const passedTests = results.filter((r) => r.pass).length;
@@ -74,7 +76,7 @@ export default async function AgentReport({
                 <div key={d.key} className="rounded-xl border border-line bg-panel p-4">
                   <div className="mb-2.5 font-mono text-[11px] uppercase tracking-wide text-faint">{d.name}</div>
                   <div className="space-y-2">
-                    {checks.map((c) => <CheckRow key={c.code} check={c} status={statuses[c.code]} />)}
+                    {checks.map((c) => <CheckRow key={c.code} check={c} status={statuses[c.code]} control={controlByCode.get(c.code)} />)}
                   </div>
                 </div>
               );
@@ -119,7 +121,7 @@ export default async function AgentReport({
   );
 }
 
-function CheckRow({ check, status }: { check: Check; status: CheckStatus }) {
+function CheckRow({ check, status, control }: { check: Check; status: CheckStatus; control?: ControlResult }) {
   const icon =
     status === 'pass' ? <span className="text-pass">✓</span> :
     status === 'fail' ? <span className="text-fail">✗</span> :
@@ -130,6 +132,7 @@ function CheckRow({ check, status }: { check: Check; status: CheckStatus }) {
     check.coverage === 'gov' ? 'governance' :
     check.coverage === 'external' ? 'audited quarterly' : '';
   const showFix = (status === 'fail' || status === 'soon' || (status === 'na' && check.coverage === 'gov')) && check.fix;
+  const failSample = status === 'fail' ? control?.samples?.find((s) => !s.pass) : undefined;
   return (
     <div className="text-sm">
       <div className="flex items-start justify-between gap-2">
@@ -139,10 +142,17 @@ function CheckRow({ check, status }: { check: Check; status: CheckStatus }) {
           {check.mandatory && <span className="mt-0.5 rounded bg-line px-1 font-mono text-[9px] uppercase text-muted">req</span>}
         </div>
         <div className="flex flex-none items-center gap-2">
+          {control && status !== 'na' && <span className="font-mono text-[10px] text-faint">{Math.round(control.passRate * 100)}%</span>}
           {tag && <span className="font-mono text-[10px] text-faint">{tag}</span>}
           <span className="font-mono text-[10px] text-faint">{check.code}</span>
         </div>
       </div>
+      {failSample && (
+        <div className="ml-5 mt-1 rounded-md border border-fail/30 bg-fail/5 px-2 py-1.5 text-[12px]">
+          <div className="text-faint">probe: <span className="text-muted">“{failSample.prompt}”</span></div>
+          <div className="mt-0.5 text-fail">agent: {failSample.output.slice(0, 160)}{failSample.output.length > 160 ? '…' : ''}</div>
+        </div>
+      )}
       {showFix && (
         <div className="ml-5 mt-1 flex items-start gap-1.5 rounded-md border border-line bg-bg/60 px-2 py-1.5 text-[12px] text-muted">
           <span className="text-accent">→</span>

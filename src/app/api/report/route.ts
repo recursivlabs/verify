@@ -20,7 +20,7 @@ export async function GET() {
   for (const a of agents) {
     const run = await latestRun(a.id);
     const results = run?.results ?? [];
-    const statuses = checkStatuses(run ? { reliability: run.reliability, nRuns: run.nRuns } : null);
+    const statuses = checkStatuses(run ? { reliability: run.reliability, nRuns: run.nRuns } : null, run?.controls);
     const score = complianceScore(statuses);
     const passed = results.filter((r) => r.pass).length;
 

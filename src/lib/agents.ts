@@ -9,6 +9,7 @@ const runKey = (agentId: string, runId: string) => `runs/${agentId}/${runId}.jso
 /** A run with its task results stored inline. */
 export interface StoredRun extends EvalRun {
   results: TaskResult[];
+  controls?: import('./evals').ControlResult[];
 }
 
 export async function listAgents(ownerId: string): Promise<Agent[]> {
@@ -81,6 +82,7 @@ export async function saveRun(agentId: string, outcome: RunOutcome): Promise<str
     costToDone: outcome.costToDone,
     nTasks: outcome.nTasks,
     nRuns: outcome.nRuns,
+    controls: outcome.controls,
     results: outcome.results.map((r, i) => ({
       id: `${runId}-${i}`,
       runId,
