@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: theme('colors.bg');
+  color: theme('colors.ink');
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+h1, h2 {
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+}
+
+.bg-grid-faint {
+  background-image: theme('backgroundImage.grid');
+  background-size: 40px 40px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 0%, transparent 75%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 0%, transparent 75%);
+}
+
+@keyframes growX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.bar-grow { transform-origin: left center; animation: growX 0.8s cubic-bezier(0.22,1,0.36,1) both; }
+@keyframes shimmer { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+.live-dot { animation: shimmer 2s ease-in-out infinite; }
+
+.scrollbar-thin::-webkit-scrollbar { height: 8px; width: 8px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: theme('colors.line-bright'); border-radius: 4px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+::selection { background: rgba(57,224,200,0.25); }
