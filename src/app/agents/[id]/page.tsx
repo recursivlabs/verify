@@ -93,6 +93,9 @@ export default async function AgentReport({ params, searchParams }: { params: { 
                 <div>
                   <div className={`flex items-center gap-2 text-lg font-medium ${verdict.color}`}>
                     <span className={`h-2.5 w-2.5 rounded-full ${verdict.dot}`} />{verdict.label}
+                    {gatewayConnected
+                      ? <span className="rounded-full bg-pass/10 px-2 py-0.5 text-[10px] font-normal text-pass">monitored</span>
+                      : <span className="rounded-full bg-warn/10 px-2 py-0.5 text-[10px] font-normal text-warn">not monitored</span>}
                   </div>
                   <div className="mt-1.5 text-sm text-muted">{score.passing} of {score.total} checks passing</div>
                 </div>
@@ -132,10 +135,14 @@ export default async function AgentReport({ params, searchParams }: { params: { 
                   </div>
                 </>
               ) : (
-                <div className="mt-2 rounded-2xl border border-line bg-panel p-5">
-                  <p className="text-sm text-ink">Right now nothing is watching what this agent does.</p>
-                  <p className="mt-1 text-sm text-muted">Connect it to Recursiv and every action it takes gets checked against your rules first. Risky ones (like a big refund) wait for a person, and everything is recorded.</p>
-                  <div className="mt-3"><RunScenario agentId={agent.id} label="▶ Connect it and try a customer request" /></div>
+                <div className="mt-2 rounded-2xl border border-accent-dim bg-panel p-5 shadow-glow">
+                  <p className="text-sm text-ink">Right now nothing is checking what this agent does, so it can take risky actions on its own. That’s why part of its score is low.</p>
+                  <p className="mt-1 text-sm text-muted">Turn on Recursiv and every action gets checked against your rules, the risky ones wait for a person, and it’s all recorded and monitored around the clock.</p>
+                  <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <RunScenario agentId={agent.id} label="▶ See what that looks like" />
+                    <a href="mailto:hello@recursiv.io?subject=Recursiv%20continuous%20monitoring" className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-bg transition-opacity hover:opacity-90">Turn on monitoring →</a>
+                  </div>
+                  <p className="mt-3 text-[12px] text-faint">Continuous compliance monitoring, priced per agent per year.</p>
                 </div>
               )}
             </section>
