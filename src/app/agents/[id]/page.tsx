@@ -29,7 +29,7 @@ function plainAction(a: ActionRecord): string {
   return a.tool;
 }
 
-export default async function AgentReport({ params, searchParams }: { params: { id: string }; searchParams: { run?: string } }) {
+export default async function AgentReport({ params, searchParams }: { params: { id: string }; searchParams: { run?: string; show?: string } }) {
   const user = await getSessionUser();
   if (!user) redirect('/');
   const agent = await getAgent(params.id, user.id);
@@ -46,6 +46,15 @@ export default async function AgentReport({ params, searchParams }: { params: { 
   const allChecks = DOMAINS.flatMap((d) => checksByDomain(d.key));
   const attention = allChecks.filter((c) => statuses[c.code] === 'fail').sort((a, b) => Number(b.mandatory) - Number(a.mandatory));
   const today = new Date().toISOString().slice(0, 10);
+
+  const held = actions.filter((a) => a.decision === 'held_for_approval');
+  const blocked = actions.filter((a) => a.decision === 'blocked');
+  const allowed = actions.filter((a) => a.decision === 'allowed');
+  const highlight = held[0] || blocked[0] || null;
+
+  const show = searchParams.show || 'all';
+  const logRows = [...actions].reverse().filter((a) =>
+    show === 'all' ? true : show === 'held' ? a.decision === 'held_for_approval' : show === 'blocked' ? a.decision === 'blocked' : a.decision === 'allowed');
 
   const verdict = score.mandatoryGaps > 0
     ? { label: 'Not ready yet', color: 'text-warn', dot: 'bg-warn' }
@@ -69,7 +78,7 @@ export default async function AgentReport({ params, searchParams }: { params: { 
 
         <h1 className="mt-6 text-2xl font-semibold tracking-tight text-ink">{agent.name}</h1>
         <p className="mt-1 text-sm text-muted">An AI helper that {agent.purpose.charAt(0).toLowerCase() + agent.purpose.slice(1)}</p>
-        <p className="mt-3 text-sm text-muted">Recursiv watches this helper to make sure it’s safe and to control what it’s allowed to do. Here’s how it’s doing.</p>
+        <p className="mt-3 text-sm text-muted">You set this up once. After that, Recursiv controls every action it takes and keeps checking that it behaves, automatically. Here’s how it’s doing.</p>
 
         {!run ? (
           <div className="mt-8 rounded-xl border border-dashed border-line bg-panel/40 p-8 text-center text-muted">
@@ -94,7 +103,7 @@ export default async function AgentReport({ params, searchParams }: { params: { 
               <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-bg">
                 <div className="bar-grow h-full rounded-full bg-accent" style={{ width: `${score.pct}%` }} />
               </div>
-              <div className="mt-3 text-[11px] text-faint">AIUC-1 is the new safety standard for AI agents. Recursiv checks it for you. Last checked {today}.</div>
+              <div className="mt-3 text-[11px] text-faint">Continuously verified by Recursiv against AIUC-1, the safety standard for AI agents. Last checked {today}.</div>
             </div>
 
             {/* HERO — you control what it does */}
@@ -102,13 +111,21 @@ export default async function AgentReport({ params, searchParams }: { params: { 
               <h2 className="text-base font-medium text-ink">You decide what this agent is allowed to do</h2>
               {gatewayConnected ? (
                 <>
-                  <p className="mt-1 text-sm text-muted">Last time it ran, Recursiv checked every action it took against your rules:</p>
-                  <div className="mt-3 overflow-hidden rounded-2xl border border-accent-dim bg-panel shadow-glow">
-                    <div className="divide-y divide-line">
-                      {actions.map((a) => <ActionRow key={a.seq} a={a} />)}
-                    </div>
-                    <div className="flex items-center justify-between gap-3 border-t border-line bg-bg/40 px-5 py-3">
-                      <span className="text-[12px] text-muted">This is a permanent record that can’t be changed afterward.</span>
+                  <p className="mt-1 text-sm text-muted">Recursiv checks every action it takes, in real time, against your rules. Here’s what happened in its last run:</p>
+                  <div className="mt-3 rounded-2xl border border-accent-dim bg-panel p-5 shadow-glow">
+                    {highlight ? (
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl leading-none">{highlight.decision === 'held_for_approval' ? '✋' : '⛔'}</span>
+                        <div>
+                          <div className="text-ink">It {plainAction(highlight).charAt(0).toLowerCase() + plainAction(highlight).slice(1)}. Recursiv {highlight.decision === 'held_for_approval' ? 'held it for a person to approve' : 'blocked it'}.</div>
+                          <div className="mt-0.5 text-sm text-muted">{highlight.reason}</div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-ink">It took {actions.length} actions, all checked against your rules and recorded.</div>
+                    )}
+                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-line pt-3">
+                      <a href="#log" className="text-[12px] text-muted hover:text-ink">{allowed.length} allowed, {held.length} held, {blocked.length} blocked. See the full log below ↓</a>
                       <RunScenario agentId={agent.id} label="↻ Run it again" />
                     </div>
                   </div>
@@ -171,7 +188,26 @@ export default async function AgentReport({ params, searchParams }: { params: { 
               </div>
             </details>
 
-            <p className="mt-6 rounded-lg border border-line bg-panel/40 px-3 py-2 text-[11px] text-faint">
+            {/* AUDIT LOG — every action, ground truth */}
+            {gatewayConnected && (
+              <section id="log" className="mt-10">
+                <div className="flex items-baseline justify-between">
+                  <h2 className="text-base font-medium text-ink">Audit log</h2>
+                  <span className="font-mono text-[11px] text-faint">🔒 {actions.length} actions, can’t be edited</span>
+                </div>
+                <p className="mt-1 text-sm text-muted">Every action this agent has taken, newest first. This is the record an auditor reviews.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {([['all', 'All', actions.length], ['allowed', 'Allowed', allowed.length], ['held', 'Held', held.length], ['blocked', 'Blocked', blocked.length]] as const).map(([f, lbl, n]) => (
+                    <Link key={f} href={`?show=${f}`} scroll={false} className={`rounded-full border px-3 py-1 text-xs ${show === f ? 'border-accent-dim bg-panel text-accent' : 'border-line text-muted hover:text-ink'}`}>{lbl} {n}</Link>
+                  ))}
+                </div>
+                <div className="mt-3 overflow-hidden rounded-xl border border-line">
+                  {logRows.length ? logRows.map((a) => <LogRow key={a.seq} a={a} />) : <div className="px-4 py-6 text-center text-sm text-faint">No {show} actions.</div>}
+                </div>
+              </section>
+            )}
+
+            <p className="mt-8 rounded-lg border border-line bg-panel/40 px-3 py-2 text-[11px] text-faint">
               This is a demo. The agent and its tools are stand-ins, but the part that checks and records its actions is real.
             </p>
           </>
@@ -207,18 +243,25 @@ function AttentionRow({ check, control, agentId, gatewayConnected }: { check: Ch
   );
 }
 
-function ActionRow({ a }: { a: ActionRecord }) {
+function LogRow({ a }: { a: ActionRecord }) {
   const tag =
     a.decision === 'allowed' ? { t: 'Allowed', c: 'text-pass' } :
-    a.decision === 'held_for_approval' ? { t: 'Held for approval', c: 'text-warn' } :
+    a.decision === 'held_for_approval' ? { t: 'Held', c: 'text-warn' } :
     { t: 'Blocked', c: 'text-fail' };
+  const when = a.ts.slice(0, 16).replace('T', ' ');
   return (
-    <div className="flex items-start justify-between gap-3 px-5 py-3">
+    <div className="flex items-start justify-between gap-3 border-b border-line/60 px-4 py-2.5 last:border-b-0">
       <div className="min-w-0">
-        <div className="text-sm text-ink">{plainAction(a)}</div>
+        <div className="flex items-center gap-2 text-[13px]">
+          <span className={`font-medium ${tag.c}`}>{tag.t}</span>
+          <span className="text-ink">{plainAction(a)}</span>
+        </div>
         <div className="mt-0.5 text-[12px] text-muted">{a.reason}</div>
       </div>
-      <span className={`flex-none text-[12px] font-medium ${tag.c}`}>{tag.t}</span>
+      <div className="flex-none text-right">
+        <div className="font-mono text-[10px] text-faint">{when} UTC</div>
+        <div className="font-mono text-[10px] text-faint">#{a.hash.slice(0, 8)}</div>
+      </div>
     </div>
   );
 }

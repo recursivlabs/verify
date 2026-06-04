@@ -22,6 +22,13 @@ export async function getAgent(id: string, ownerId: string): Promise<Agent | nul
   return getJson<Agent>(agentKey(ownerId, id));
 }
 
+/** Every agent across all owners (for the scheduled re-verification). */
+export async function listAllAgents(): Promise<Agent[]> {
+  const keys = await listKeys('agents/');
+  const agents = await Promise.all(keys.map((k) => getJson<Agent>(k.key)));
+  return agents.filter(Boolean) as Agent[];
+}
+
 export async function createAgent(input: {
   ownerId: string;
   name: string;

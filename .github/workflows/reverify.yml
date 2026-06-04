@@ -1,0 +1,15 @@
+name: continuous verification
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # daily at 08:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  reverify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Re-verify all agents
+        run: |
+          curl -fsS -X POST "https://verify.on.recursiv.io/api/cron/reverify" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
