@@ -45,6 +45,7 @@ export default async function AgentReport({ params, searchParams }: { params: { 
 
   const allChecks = DOMAINS.flatMap((d) => checksByDomain(d.key));
   const attention = allChecks.filter((c) => statuses[c.code] === 'fail').sort((a, b) => Number(b.mandatory) - Number(a.mandatory));
+  const soon = allChecks.filter((c) => statuses[c.code] === 'soon');
   const today = new Date().toISOString().slice(0, 10);
 
   const held = actions.filter((a) => a.decision === 'held_for_approval');
@@ -155,13 +156,20 @@ export default async function AgentReport({ params, searchParams }: { params: { 
               </section>
             )}
 
-            {/* NEEDS ATTENTION */}
-            {attention.length > 0 && (
+            {/* WHAT'S LEFT — the clear to-do list */}
+            {(attention.length > 0 || soon.length > 0) && (
               <section className="mt-8">
-                <h2 className="text-base font-medium text-ink">Needs attention</h2>
+                <h2 className="text-base font-medium text-ink">What’s left to be fully ready</h2>
                 <div className="mt-3 space-y-2.5">
                   {attention.map((c) => <AttentionRow key={c.code} check={c} control={controlByCode.get(c.code)} agentId={agent.id} gatewayConnected={gatewayConnected} />)}
+                  {soon.map((c) => (
+                    <div key={c.code} className="flex items-center justify-between gap-2 rounded-xl border border-line bg-panel/50 p-3.5 text-sm">
+                      <span className="flex items-center gap-2 text-faint"><span>◷</span>{BEHAVIOR_LABEL[c.code] || c.label}</span>
+                      <span className="text-[11px] text-faint">Recursiv is adding this</span>
+                    </div>
+                  ))}
                 </div>
+                <p className="mt-3 text-[12px] text-faint">Your written policies and the official yearly audit are handled by your compliance team and your auditor, not by this tool.</p>
               </section>
             )}
 
