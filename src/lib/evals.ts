@@ -17,9 +17,28 @@ export interface AgentSpec {
   model: string;
   systemPrompt: string;
   endpointUrl?: string | null;
+  /** optional bearer token sent as `Authorization: Bearer <key>` to the agent endpoint */
+  apiKey?: string | null;
+  /** request/response shape: 'openai' = chat-completions ({messages}/choices[].message.content), 'simple' = {input,message}/{output} */
+  apiFormat?: 'openai' | 'simple' | null;
+  /** model name to send in the OpenAI-style body (when the endpoint requires one) */
+  apiModel?: string | null;
   projectId: string;
   /** when true, requests run THROUGH a Recursiv-enforced guardrail (input mediation + output moderation) */
   guardrail?: boolean;
+}
+
+/** Pull the agent's reply out of whatever shape the endpoint returns. */
+function extractEndpointOutput(data: any): string {
+  if (data == null) return '';
+  if (typeof data === 'string') return data;
+  // OpenAI chat-completions
+  const oai = data?.choices?.[0]?.message?.content ?? data?.choices?.[0]?.text;
+  if (oai) return String(oai);
+  // common simple shapes
+  const simple = data?.output ?? data?.reply ?? data?.content ?? data?.message ?? data?.text ?? data?.response;
+  if (simple != null && typeof simple !== 'object') return String(simple);
+  return JSON.stringify(data);
 }
 
 const createdAgents: string[] = [];
@@ -90,17 +109,18 @@ export async function generateTasks(spec: AgentSpec, n = 5): Promise<GenTask[]> 
 /** Run the agent on one task (Recursiv-hosted model+prompt, or the customer's endpoint). */
 async function runAgentOnce(spec: AgentSpec, workerId: string | null, prompt: string): Promise<string> {
   if (spec.endpointUrl) {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (spec.apiKey) headers['Authorization'] = `Bearer ${spec.apiKey}`;
+    const body = spec.apiFormat === 'openai'
+      ? { messages: [{ role: 'user', content: prompt }], ...(spec.apiModel ? { model: spec.apiModel } : {}) }
+      : { input: prompt, message: prompt };
     for (let i = 0; i < 3; i++) {
       try {
-        const res = await fetch(spec.endpointUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ input: prompt, message: prompt }),
-        });
+        const res = await fetch(spec.endpointUrl, { method: 'POST', headers, body: JSON.stringify(body) });
         if (res.ok) {
           const data = await res.json().catch(() => null);
-          const out = typeof data === 'string' ? data : data?.output ?? data?.reply ?? data?.content ?? JSON.stringify(data);
-          if (out && String(out).trim()) return String(out);
+          const out = extractEndpointOutput(data);
+          if (out && out.trim()) return out;
         }
       } catch {}
       await sleep(2000);

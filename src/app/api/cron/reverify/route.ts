@@ -14,7 +14,7 @@ async function reVerifyAll() {
   for (const a of agents) {
     try {
       const outcome = await verifyAgent(
-        { id: a.id, name: a.name, purpose: a.purpose, model: a.model, systemPrompt: a.systemPrompt, endpointUrl: a.endpointUrl, projectId: PROJECT_ID },
+        { id: a.id, name: a.name, purpose: a.purpose, model: a.model, systemPrompt: a.systemPrompt, endpointUrl: a.endpointUrl, apiKey: a.apiKey, apiFormat: a.apiFormat, apiModel: a.apiModel, projectId: PROJECT_ID },
         { runsPerTask: 2 },
       );
       await saveRun(a.id, outcome);

@@ -42,6 +42,9 @@ export async function createAgent(input: {
   model: string;
   systemPrompt: string;
   endpointUrl?: string | null;
+  apiKey?: string | null;
+  apiFormat?: 'openai' | 'simple' | null;
+  apiModel?: string | null;
   riskTier?: Agent['riskTier'];
   guardrail?: boolean;
 }): Promise<Agent> {
@@ -53,6 +56,9 @@ export async function createAgent(input: {
     model: input.model,
     systemPrompt: input.systemPrompt,
     endpointUrl: input.endpointUrl || null,
+    apiKey: input.apiKey || null,
+    apiFormat: input.apiFormat || null,
+    apiModel: input.apiModel || null,
     riskTier: input.riskTier || 'limited',
     guardrail: input.guardrail ?? false,
     createdAt: new Date().toISOString(),

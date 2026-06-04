@@ -22,6 +22,9 @@ export interface Agent {
   model: string; // model id it runs on (for agents we execute)
   systemPrompt: string;
   endpointUrl?: string | null; // optional: call the customer's own deployed agent
+  apiKey?: string | null; // optional bearer token for the endpoint
+  apiFormat?: 'openai' | 'simple' | null; // request/response shape of the endpoint
+  apiModel?: string | null; // model name to send in the OpenAI-style body
   riskTier: 'high' | 'limited' | 'minimal'; // EU AI Act risk classification
   guardrail?: boolean; // Recursiv guardrail enabled (in-path enforcement)
   createdAt: string;

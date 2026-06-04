@@ -21,6 +21,9 @@ export async function POST(req: Request) {
       model: mode === 'own' ? 'external' : String(b.model || 'openai/gpt-5.5'),
       systemPrompt: mode === 'own' ? '' : String(b.systemPrompt || ''),
       endpointUrl: mode === 'own' ? String(b.endpointUrl || '') : null,
+      apiKey: mode === 'own' && b.apiKey ? String(b.apiKey) : null,
+      apiFormat: mode === 'own' ? (b.apiFormat === 'simple' ? 'simple' : 'openai') : null,
+      apiModel: mode === 'own' && b.apiModel ? String(b.apiModel).slice(0, 80) : null,
       riskTier: riskFromCaps(Array.isArray(b.capabilities) ? b.capabilities : []),
     });
     return NextResponse.json({ id: agent.id });

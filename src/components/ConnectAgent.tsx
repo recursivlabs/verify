@@ -20,6 +20,9 @@ export function ConnectAgent() {
   const [model, setModel] = useState(MODELS[0]);
   const [systemPrompt, setSystemPrompt] = useState('');
   const [endpointUrl, setEndpointUrl] = useState('');
+  const [apiKey, setApiKey] = useState('');
+  const [apiFormat, setApiFormat] = useState<'openai' | 'simple'>('openai');
+  const [apiModel, setApiModel] = useState('');
   const [caps, setCaps] = useState<string[]>(['tools']);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -37,7 +40,7 @@ export function ConnectAgent() {
       const res = await fetch('/api/agents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode, name, purpose, model, systemPrompt, endpointUrl, capabilities: caps }),
+        body: JSON.stringify({ mode, name, purpose, model, systemPrompt, endpointUrl, apiKey, apiFormat, apiModel, capabilities: caps }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Could not connect agent');
@@ -93,8 +96,22 @@ export function ConnectAgent() {
         ) : (
           <>
             <Field label="Endpoint URL">
-              <input value={endpointUrl} onChange={(e) => setEndpointUrl(e.target.value)} placeholder="https://api.yourcompany.com/agent" className={inputCls} />
+              <input value={endpointUrl} onChange={(e) => setEndpointUrl(e.target.value)} placeholder="https://api.yourcompany.com/v1/chat/completions" className={inputCls} />
             </Field>
+            <Field label="API key (optional)">
+              <input value={apiKey} onChange={(e) => setApiKey(e.target.value)} type="password" placeholder="sent as Authorization: Bearer …" className={inputCls} />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Request format">
+                <select value={apiFormat} onChange={(e) => setApiFormat(e.target.value as 'openai' | 'simple')} className={inputCls}>
+                  <option value="openai">OpenAI chat</option>
+                  <option value="simple">Simple</option>
+                </select>
+              </Field>
+              <Field label="Model (optional)">
+                <input value={apiModel} onChange={(e) => setApiModel(e.target.value)} placeholder="gpt-4o-mini" className={inputCls} />
+              </Field>
+            </div>
             <div className="rounded-lg border border-line bg-bg p-3 font-mono text-[11px] text-muted">
               <div className="mb-1.5 text-faint">// 1. we probe the endpoint to verify behavior</div>
               <div className="mb-2.5 text-faint">// 2. route your agent’s tool calls through Recursiv to enforce + log every action:</div>
