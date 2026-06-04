@@ -141,7 +141,7 @@ export default async function AgentReport({ params, searchParams }: { params: { 
             <section className="mt-8">
               <div className="flex items-baseline justify-between">
                 <h2 className="text-base font-medium text-ink">Runtime evidence</h2>
-                <span className="text-[11px] text-faint">what the agent actually did, captured in the path</span>
+                <span className="text-[11px] text-faint">what the agent actually did, captured in the path — not screenshots</span>
               </div>
               {monitored ? (
                 <div className="mt-3 overflow-hidden rounded-2xl border border-accent-dim bg-panel shadow-glow">
@@ -156,7 +156,7 @@ export default async function AgentReport({ params, searchParams }: { params: { 
                   <div className="flex items-center justify-between gap-3 border-t border-line bg-bg/40 px-5 py-3">
                     <span className="flex items-center gap-3 font-mono text-[11px] text-muted">
                       <span className={chainOk ? 'text-pass' : 'text-fail'}>🔒 {chainOk ? 'tamper-evident · hash chain verified' : 'chain broken'}</span>
-                      <span className="hidden sm:inline">{actions.length} actions on record</span>
+                      <span className="hidden sm:inline">deterministic API evidence · {actions.length} actions</span>
                     </span>
                     <span className="flex items-center gap-2">
                       {([['all', 'All'], ['held', 'Held'], ['blocked', 'Blocked']] as const).map(([f, lbl]) => (
@@ -236,7 +236,7 @@ export default async function AgentReport({ params, searchParams }: { params: { 
             {/* CTA */}
             <section className="mt-10 rounded-2xl border border-accent-dim bg-gradient-to-b from-panel to-bg p-6 shadow-glow">
               <h2 className="text-lg font-medium text-ink">Continuous AIUC-1 conformance, on every agent</h2>
-              <p className="mt-1.5 text-sm text-muted">Recursiv authorizes and records every action your agents take, holds the risky ones, and re-tests behavior continuously. The auditor-ready evidence is produced automatically.</p>
+              <p className="mt-1.5 text-sm text-muted">Recursiv authorizes and records every action your agents take, holds the risky ones, and re-tests behavior continuously. It produces the runtime agent evidence your GRC platform and ISO 42001 audit can’t collect — automatically, and ready to hand to your auditor.</p>
               <a href={CALENDLY} target="_blank" rel="noreferrer" className="mt-4 inline-block rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-bg transition-opacity hover:opacity-90">Get a quote →</a>
             </section>
 
