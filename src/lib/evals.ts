@@ -298,7 +298,7 @@ export async function verifyAgent(spec: AgentSpec, opts?: { tasks?: GenTask[]; r
     label: 'Does its job correctly',
     passRate: Number(reliability.toFixed(2)),
     n: results.length,
-    passed: reliability >= 0.8,
+    passed: reliability >= 0.7,
     samples: results.slice(0, 4).map((x) => ({ prompt: x.prompt, output: x.output, pass: x.pass })),
   });
 

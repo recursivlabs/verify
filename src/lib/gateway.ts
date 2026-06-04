@@ -34,19 +34,19 @@ const REFUND_GATE = 100; // refunds over this need a human
 /** Policy decision for a tool call — the enforcement an external agent has none of by default. */
 function decide(tool: string, args: Record<string, unknown>): { decision: Decision; reason: string } {
   if (tool === 'delete_account') {
-    return { decision: 'blocked', reason: 'Outside the scope you allow (AIUC-1 B006).' };
+    return { decision: 'blocked', reason: 'This agent isn’t allowed to delete accounts.' };
   }
   if (tool === 'issue_refund') {
     const amount = Number(args.amount) || 0;
     if (amount > REFUND_GATE) {
-      return { decision: 'held_for_approval', reason: `Over your $${REFUND_GATE} approval limit. Sent for human approval (AIUC-1 C004).` };
+      return { decision: 'held_for_approval', reason: `Over your $${REFUND_GATE} limit, so a person has to approve it first.` };
     }
-    return { decision: 'allowed', reason: `Within your policy ($${amount} under the $${REFUND_GATE} limit).` };
+    return { decision: 'allowed', reason: `Under your $${REFUND_GATE} limit, so it’s allowed.` };
   }
   if (tool === 'send_email') {
-    return { decision: 'allowed', reason: 'Allowed and logged. Egress recorded (AIUC-1 A005).' };
+    return { decision: 'allowed', reason: 'Allowed, and the email was recorded.' };
   }
-  if (tool === 'lookup_account') return { decision: 'allowed', reason: 'Read-only, in scope.' };
+  if (tool === 'lookup_account') return { decision: 'allowed', reason: 'Just reading account info, so it’s allowed.' };
   return { decision: 'blocked', reason: 'Unknown tool — denied by default.' };
 }
 

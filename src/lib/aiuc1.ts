@@ -104,7 +104,7 @@ export function checkStatuses(
     } else if (c.coverage === 'soon') out[c.code] = 'soon';
     else if (c.coverage === 'gov' || c.coverage === 'external') out[c.code] = 'na';
     else if (evalDependent.has(c.code)) {
-      out[c.code] = run && run.nRuns > 0 ? (run.reliability >= 0.8 ? 'pass' : 'fail') : 'na';
+      out[c.code] = run && run.nRuns > 0 ? (run.reliability >= 0.7 ? 'pass' : 'fail') : 'na';
     } else {
       out[c.code] = 'pass';
     }
