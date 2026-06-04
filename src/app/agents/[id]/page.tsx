@@ -196,6 +196,11 @@ export default async function AgentReport({ params, searchParams }: { params: { 
             {/* full coverage by AIUC-1 control area */}
             <section className="mt-8">
               <h2 className="text-base font-medium text-ink">Control coverage</h2>
+              <p className="mt-1 text-[12px] text-faint">
+                <span className="text-pass">✓ evidenced</span> by Recursiv · <span className="text-fail">✗ gap</span> to close ·
+                {' '}<span className="text-muted">coming soon</span> = Recursiv is adding it ·
+                {' '}<span className="text-muted">your policy / AIUC test</span> = handled by your compliance program or the official AIUC assessment, not this tool.
+              </p>
               <div className="mt-3 space-y-4">
                 {DOMAINS.map((d) => {
                   const checks = checksByDomain(d.key);
@@ -222,8 +227,8 @@ export default async function AgentReport({ params, searchParams }: { params: { 
                       {!monitored && ENFORCEMENT.has(c.code) && <div className="mt-2"><RunScenario agentId={agent.id} label="▶ Route through Recursiv to close this" /></div>}
                     </div>
                   ))}
-                  {soon.length > 0 && <div className="rounded-xl border border-line bg-panel/50 p-4 text-sm text-muted">Rolling out: {soon.map((c) => c.label).join(', ')}.</div>}
-                  <p className="text-[12px] text-faint">Written policies and the annual audit are owned by the customer’s governance program and the auditor, not by this tool.</p>
+                  {soon.length > 0 && <div className="rounded-xl border border-line bg-panel/50 p-4 text-sm text-muted">Coming soon from Recursiv (optional, not your action): {soon.map((c) => c.label).join(', ')}.</div>}
+                  <p className="text-[12px] text-faint">Not shown as gaps: written policies and the annual audit. Those are owned by your compliance program (e.g. Vanta) and the AIUC auditor. Recursiv covers the runtime controls above.</p>
                 </div>
               </section>
             )}
@@ -269,8 +274,8 @@ function CoverageRow({ check, status }: { check: Check; status: CheckStatus }) {
   const m =
     status === 'pass' ? { i: '✓', c: 'text-pass', t: 'evidenced' } :
     status === 'fail' ? { i: '✗', c: 'text-fail', t: 'gap' } :
-    status === 'soon' ? { i: '◷', c: 'text-faint', t: 'rolling out' } :
-    { i: '○', c: 'text-faint', t: check.coverage === 'gov' ? 'governance program' : 'quarterly audit' };
+    status === 'soon' ? { i: '◷', c: 'text-faint', t: 'coming soon' } :
+    { i: '○', c: 'text-faint', t: check.coverage === 'gov' ? 'your policy' : 'AIUC test' };
   return (
     <div className="flex items-center justify-between gap-2 text-[13px]">
       <span className="flex items-center gap-2"><span className={m.c}>{m.i}</span><span className={status === 'pass' || status === 'fail' ? 'text-ink' : 'text-faint'}>{check.label}</span></span>
