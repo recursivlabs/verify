@@ -4,6 +4,7 @@ import { getSessionUser } from '@/lib/session';
 import { TopBar } from '@/components/Brand';
 import { CountUp } from '@/components/ui';
 import { listAgents, latestRuns } from '@/lib/agents';
+import { readActions } from '@/lib/gateway';
 import { DOMAINS, CHECKS, checkStatuses, complianceScore, type CheckStatus } from '@/lib/aiuc1';
 
 export const dynamic = 'force-dynamic';
@@ -23,10 +24,16 @@ export default async function Dashboard() {
     ? await latestRuns(agents.map((a) => a.id)).catch(() => ({}))
     : {};
 
+  // gateway activity per agent — same signal the agent page uses, so scores stay in sync
+  const actionsByAgent = Object.fromEntries(
+    await Promise.all(agents.map(async (a) => [a.id, await readActions(a.id).catch(() => [])] as const)),
+  );
+
   // per-agent statuses + compliance
   const perAgent = agents.map((a) => {
     const run = runs[a.id] ? { reliability: runs[a.id].reliability, nRuns: runs[a.id].nRuns } : null;
-    const statuses = checkStatuses(run, runs[a.id]?.controls);
+    const monitored = (actionsByAgent[a.id]?.length ?? 0) > 0;
+    const statuses = checkStatuses(run, runs[a.id]?.controls, monitored);
     const score = complianceScore(statuses);
     const fails = Object.values(statuses).filter((s) => s === 'fail').length;
     return { agent: a, run: runs[a.id] || null, statuses, score, fails };
@@ -66,8 +73,8 @@ export default async function Dashboard() {
                   Continuously verified by Recursiv · updated just now
                 </p>
               </div>
-              <a href="/api/report" className="rounded-lg border border-line-bright bg-panel px-4 py-2.5 text-sm text-ink transition-colors hover:border-accent-dim">
-                Download audit report
+              <a href="/api/report" className="shrink-0 whitespace-nowrap rounded-lg border border-line-bright bg-panel px-4 py-2.5 text-sm text-ink transition-colors hover:border-accent-dim">
+                Export audit report
               </a>
             </div>
 
@@ -115,7 +122,7 @@ export default async function Dashboard() {
                     ) : (
                       <span className="text-xs text-info">on track</span>
                     )}
-                    <span className="tabular w-8 text-right font-mono text-sm text-ink">{p.run ? p.score.pct : '—'}</span>
+                    <span className="tabular w-12 text-right font-mono text-sm text-ink">{p.run ? `${p.score.pct}%` : '—'}</span>
                     <span className="text-faint">→</span>
                   </div>
                 </Link>

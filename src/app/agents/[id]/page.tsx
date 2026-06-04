@@ -62,7 +62,7 @@ export default async function AgentReport({ params, searchParams }: { params: { 
   const behavior = (run?.controls || []);
 
   return (
-    <div className="min-h-screen bg-grid-faint">
+    <div className="min-h-screen">
       <TopBar email={user.email} />
       <main className="mx-auto max-w-3xl px-5 py-8">
         <div className="flex items-center justify-between">
