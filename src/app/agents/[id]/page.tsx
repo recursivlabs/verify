@@ -80,7 +80,8 @@ export default async function AgentReport({ params, searchParams }: { params: { 
         <div className="flex items-center justify-between">
           <Link href="/dashboard" className="font-mono text-xs text-muted hover:text-ink">← Agents</Link>
           <div className="flex items-center gap-3">
-            {run && <a href="/api/report" className="rounded-lg border border-line bg-panel px-3.5 py-2 text-sm text-muted transition-colors hover:text-ink">Export evidence</a>}
+            {run && <a href={`/api/evidence/${agent.id}`} className="rounded-lg border border-line bg-panel px-3.5 py-2 text-sm text-muted transition-colors hover:text-ink">Evidence (JSON)</a>}
+            {run && <a href="/api/report" className="rounded-lg border border-line bg-panel px-3.5 py-2 text-sm text-muted transition-colors hover:text-ink">Report</a>}
             <RunCheck agentId={agent.id} hasRun={!!run} autostart={(searchParams.run === '1' || !run)} />
           </div>
         </div>
@@ -93,7 +94,7 @@ export default async function AgentReport({ params, searchParams }: { params: { 
             <p className="mt-0.5 font-mono text-[11px] text-faint">model {agent.model}</p>
           </div>
           <div className="flex flex-none items-center gap-2 rounded-lg border border-line bg-panel px-3 py-2">
-            <svg width="16" height="16" viewBox="0 0 32 32" fill="none"><path d="M16 4l10 4.5v6.2c0 6.3-4.1 10.9-10 12.8C10.1 25.6 6 21 6 14.7V8.5L16 4z" stroke="#39e0c8" strokeWidth="1.6" fill="rgba(57,224,200,0.06)" /><path d="M11.5 16.2l3.2 3.3 6-7" stroke="#39e0c8" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <svg width="16" height="16" viewBox="0 0 32 32" fill="none"><path d="M16 4l10 4.5v6.2c0 6.3-4.1 10.9-10 12.8C10.1 25.6 6 21 6 14.7V8.5L16 4z" stroke="#0b9d76" strokeWidth="1.6" fill="rgba(11,157,118,0.08)" /><path d="M11.5 16.2l3.2 3.3 6-7" stroke="#0b9d76" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" /></svg>
             <div className="font-mono text-[10px] leading-tight text-faint">
               <div className="text-accent">AIUC-1 CONFORMANCE EVIDENCE</div>
               <div>continuous · {today} · ref {ref}</div>
@@ -240,7 +241,7 @@ export default async function AgentReport({ params, searchParams }: { params: { 
               <a href={CALENDLY} target="_blank" rel="noreferrer" className="mt-4 inline-block rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-bg transition-opacity hover:opacity-90">Get a quote →</a>
             </section>
 
-            <p className="mt-6 text-[11px] text-faint">Demo: the agent and its tools are stand-ins. The runtime gateway, enforcement, and evidence are real and externally callable.</p>
+            <p className="mt-6 text-[11px] text-faint">Demo: the agent and its tools are stand-ins. The runtime gateway, enforcement, and evidence are real and externally callable — including a public chain verifier (<span className="font-mono">/api/verify</span>) and an MCP endpoint (<span className="font-mono">/api/mcp</span>) that exposes this evidence to tools like Claude or your GRC platform.</p>
           </>
         )}
       </main>

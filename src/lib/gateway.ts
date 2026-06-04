@@ -73,7 +73,7 @@ export async function readActions(agentId: string): Promise<ActionRecord[]> {
   return recs;
 }
 
-function hashEntry(e: Omit<ActionRecord, 'hash'>): string {
+export function hashEntry(e: Omit<ActionRecord, 'hash'>): string {
   return createHash('sha256').update(JSON.stringify(e)).digest('hex');
 }
 

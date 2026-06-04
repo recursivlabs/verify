@@ -6,6 +6,8 @@ import { CountUp } from '@/components/ui';
 import { listAgents, latestRuns } from '@/lib/agents';
 import { readActions } from '@/lib/gateway';
 import { DOMAINS, CHECKS, checkStatuses, complianceScore, type CheckStatus } from '@/lib/aiuc1';
+import { CONTINUOUS_PLAN, CALENDLY } from '@/lib/constants';
+import { timeAgo } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,6 +43,7 @@ export default async function Dashboard() {
 
   const scored = perAgent.filter((p) => p.run);
   const orgPct = scored.length ? Math.round(scored.reduce((s, p) => s + p.score.pct, 0) / scored.length) : 0;
+  const lastRun = scored.map((p) => p.run!.finishedAt).filter(Boolean).sort().pop() || null;
 
   // domain rollup across all agents
   const domainRollup = DOMAINS.map((d) => {
@@ -69,14 +72,29 @@ export default async function Dashboard() {
                 <h1 className="text-2xl font-semibold text-ink sm:text-3xl">
                   Your agents are <span className="text-accent"><CountUp to={orgPct} suffix="%" /></span> ready for an AIUC-1 audit.
                 </h1>
-                <p className="mt-2 font-mono text-xs text-muted">
-                  Continuously verified by Recursiv · updated just now
+                <p className="mt-2 font-mono text-xs">
+                  {CONTINUOUS_PLAN ? (
+                    <span className="inline-flex items-center gap-1.5 text-pass"><span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-pass" />Continuous monitoring active · re-verified automatically</span>
+                  ) : (
+                    <span className="text-muted">Free one-time checks{lastRun ? ` · last run ${timeAgo(lastRun)}` : ''}</span>
+                  )}
                 </p>
               </div>
               <a href="/api/report" className="shrink-0 whitespace-nowrap rounded-lg border border-line-bright bg-panel px-4 py-2.5 text-sm text-ink transition-colors hover:border-accent-dim">
                 Export audit report
               </a>
             </div>
+
+            {/* plan state: free → upsell to continuous */}
+            {!CONTINUOUS_PLAN && (
+              <div className="mt-5 flex flex-col gap-3 rounded-xl border border-accent-dim bg-accent/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div className="text-sm font-medium text-ink">You’re on free one-time checks</div>
+                  <div className="mt-0.5 text-xs text-muted">Continuous monitoring re-verifies every agent action around the clock and keeps your evidence audit-ready automatically.</div>
+                </div>
+                <a href={CALENDLY} target="_blank" rel="noreferrer" className="shrink-0 whitespace-nowrap rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-bg transition-opacity hover:opacity-90">Get a quote for continuous monitoring →</a>
+              </div>
+            )}
 
             {/* domain cards */}
             <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -113,15 +131,22 @@ export default async function Dashboard() {
                     <div className="mt-0.5 text-xs text-faint">{p.agent.purpose}</div>
                   </div>
                   <div className="flex items-center gap-5">
-                    {!p.run ? (
-                      <span className="text-xs text-muted">ready to check</span>
-                    ) : p.score.mandatoryGaps > 0 ? (
-                      <span className="text-xs text-warn">⚠ {p.score.mandatoryGaps} mandatory gap{p.score.mandatoryGaps > 1 ? 's' : ''}</span>
-                    ) : p.score.pct >= 90 ? (
-                      <span className="text-xs text-pass">● audit-ready</span>
-                    ) : (
-                      <span className="text-xs text-info">on track</span>
-                    )}
+                    <div className="text-right">
+                      {!p.run ? (
+                        <span className="text-xs text-muted">ready to check</span>
+                      ) : p.score.mandatoryGaps > 0 ? (
+                        <span className="text-xs text-warn">⚠ {p.score.mandatoryGaps} mandatory gap{p.score.mandatoryGaps > 1 ? 's' : ''}</span>
+                      ) : p.score.pct >= 90 ? (
+                        <span className="text-xs text-pass">● audit-ready</span>
+                      ) : (
+                        <span className="text-xs text-info">on track</span>
+                      )}
+                      {p.run && (
+                        <div className="mt-0.5 text-[11px] text-faint">
+                          {CONTINUOUS_PLAN ? 'continuous' : `last run ${timeAgo(p.run.finishedAt)}`}
+                        </div>
+                      )}
+                    </div>
                     <span className="tabular w-12 text-right font-mono text-sm text-ink">{p.run ? `${p.score.pct}%` : '—'}</span>
                     <span className="text-faint">→</span>
                   </div>
