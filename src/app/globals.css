@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
@@ -38,4 +38,4 @@ h1, h2 {
 .scrollbar-thin::-webkit-scrollbar { height: 8px; width: 8px; }
 .scrollbar-thin::-webkit-scrollbar-thumb { background: theme('colors.line-bright'); border-radius: 4px; }
 .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-::selection { background: rgba(57,224,200,0.25); }
+::selection { background: rgba(11,157,118,0.18); }

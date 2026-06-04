@@ -6,11 +6,11 @@ export function Logo({ href = '/' }: { href?: string }) {
       <svg width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden>
         <path
           d="M16 4l10 4.5v6.2c0 6.3-4.1 10.9-10 12.8C10.1 25.6 6 21 6 14.7V8.5L16 4z"
-          stroke="#39e0c8"
+          stroke="#0b9d76"
           strokeWidth="1.6"
-          fill="rgba(57,224,200,0.06)"
+          fill="rgba(11,157,118,0.08)"
         />
-        <path d="M11.5 16.2l3.2 3.3 6-7" stroke="#39e0c8" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M11.5 16.2l3.2 3.3 6-7" stroke="#0b9d76" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       <span className="font-mono text-sm tracking-tight text-ink">
         Recursiv<span className="text-accent"> Verify</span>
@@ -26,11 +26,11 @@ export function TopBar({ email }: { email?: string }) {
         <Logo href="/dashboard" />
         {email && (
           <div className="flex items-center gap-4">
-            <span className="hidden font-mono text-xs text-faint sm:inline">{email}</span>
-            <form action="/api/auth/logout" method="post">
+            <span className="hidden font-mono text-xs leading-none text-faint sm:inline">{email}</span>
+            <form action="/api/auth/logout" method="post" className="flex items-center">
               <button
                 formAction="/api/auth/logout"
-                className="font-mono text-xs text-muted transition-colors hover:text-ink"
+                className="font-mono text-xs leading-none text-muted transition-colors hover:text-ink"
                 type="submit"
               >
                 sign out
