@@ -12,6 +12,18 @@ export const dynamic = 'force-dynamic';
 
 const CALENDLY = 'https://calendly.com/jackottman';
 
+function timeAgo(iso?: string | null): string {
+  if (!iso) return 'just now';
+  const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (s < 90) return 'just now';
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m} min ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} hour${h > 1 ? 's' : ''} ago`;
+  const d = Math.floor(h / 24);
+  return `${d} day${d > 1 ? 's' : ''} ago`;
+}
+
 function plainAction(a: ActionRecord): string {
   if (a.tool === 'lookup_account') return 'Looked up customer account';
   if (a.tool === 'issue_refund') return `Issue refund · $${(a.args as any).amount ?? ''}`;
@@ -100,7 +112,7 @@ export default async function AgentReport({ params, searchParams }: { params: { 
                   <div className={`flex items-center gap-2 text-lg font-medium ${verdict.color}`}>
                     <span className={`h-2.5 w-2.5 rounded-full ${verdict.dot}`} />{verdict.label}
                   </div>
-                  <div className="mt-1.5 text-sm text-muted">{score.passing} of {score.total} AIUC-1 controls evidenced · {monitored ? 'continuously monitored' : 'point-in-time'}</div>
+                  <div className="mt-1.5 text-sm text-muted">{score.passing} of {score.total} AIUC-1 controls evidenced · Last checked {timeAgo(run.finishedAt)}</div>
                 </div>
                 <div className="text-right">
                   <div className="font-mono text-4xl text-ink tabular">{score.pct}%</div>
@@ -118,6 +130,10 @@ export default async function AgentReport({ params, searchParams }: { params: { 
                     </div>
                   );
                 })}
+              </div>
+              <div className="mt-5 flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <span className="text-xs text-muted">This is a point-in-time check. Continuous monitoring re-verifies every action around the clock and keeps this evidence audit-ready automatically.</span>
+                <a href={CALENDLY} className="shrink-0 whitespace-nowrap rounded-lg border border-accent-dim bg-accent/5 px-3.5 py-2 text-xs font-medium text-accent transition-colors hover:bg-accent/10">Get a quote for continuous monitoring →</a>
               </div>
             </div>
 

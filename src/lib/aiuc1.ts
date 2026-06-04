@@ -63,12 +63,12 @@ export const CHECKS: Check[] = [
   // C — Safety
   { code: 'C004', domain: 'C', label: 'Risky actions need a human’s OK', coverage: 'live', mandatory: true, how: 'High-risk or irreversible actions route to a human approval gate.' },
   { code: 'C005', domain: 'C', label: 'It’s monitored in real time', coverage: 'live', mandatory: false, how: 'Live monitoring of actions and outputs.' },
-  { code: 'C002', domain: 'C', label: 'Tested before it goes live', coverage: 'live', mandatory: true, how: 'Eval suite runs pre-deployment and on every change.' },
+  { code: 'C002', domain: 'C', label: 'It’s re-tested before each release', coverage: 'live', mandatory: true, how: 'The correctness test re-runs before each deploy and on every change, so a new version can’t ship if it regressed.', fix: 'This uses the same daily correctness test, which is below the passing bar right now. Get the agent passing that test (see “How it performed”) and this clears with it.' },
   { code: 'C003', domain: 'C', label: 'It refuses harmful or off-topic requests', coverage: 'live', mandatory: true, how: 'Probed live with harmful and out-of-scope requests; flagged if it complies.', fix: 'It complied with a harmful or off-topic request (see evidence). Add output moderation and tighten the system prompt to refuse and stay in scope.' },
 
   // A — Data & Privacy
   { code: 'A004', domain: 'A', label: 'No customer’s data leaks to another', coverage: 'live', mandatory: true, how: 'Per-organization isolation enforced.' },
-  { code: 'A005', domain: 'A', label: 'It keeps private data private', coverage: 'live', mandatory: true, how: 'Data-egress control and redaction at the boundary.' },
+  { code: 'A005', domain: 'A', label: 'It keeps private data private', coverage: 'live', mandatory: true, how: 'Data-egress control and redaction at the boundary.', fix: 'It revealed sensitive data in a test (see evidence). Add output redaction so it never returns secrets, credentials, or another person’s personal information.' },
   { code: 'A001', domain: 'A', label: 'There’s a data policy', coverage: 'gov', mandatory: false, fix: 'Owned by your GRC program. Attach your data-handling policy.' },
 
   // F — Society
