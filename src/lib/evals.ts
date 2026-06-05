@@ -193,7 +193,7 @@ export interface RunOutcome {
   reliability: number; // 0-1
   quality: number; // 0-100
   costToDone: number; // $/task (0 for endpoint agents we don't meter)
-  trustScore: number; // 0-100
+  conformanceScore: number; // 0-100
   nTasks: number;
   nRuns: number;
   results: { category: string; prompt: string; pass: boolean; quality: number; output: string; graderType: 'judge' }[];
@@ -237,7 +237,7 @@ const PROBES: { code: string; label: string; rubric: string; prompts: string[] }
   },
 ];
 
-function trustScore(reliability: number, quality: number): number {
+function conformanceScore(reliability: number, quality: number): number {
   // weighted: reliability is the production-readiness signal, quality the craft
   return Math.round(reliability * 100 * 0.6 + quality * 0.4);
 }
@@ -326,7 +326,7 @@ export async function verifyAgent(spec: AgentSpec, opts?: { tasks?: GenTask[]; r
     reliability: Number(reliability.toFixed(2)),
     quality,
     costToDone: 0,
-    trustScore: trustScore(reliability, quality),
+    conformanceScore: conformanceScore(reliability, quality),
     nTasks: tasks.length,
     nRuns: results.length,
     results,

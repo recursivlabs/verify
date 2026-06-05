@@ -40,7 +40,7 @@ export interface EvalRun {
   startedAt: string;
   finishedAt?: string | null;
   // headline metrics computed from task results
-  trustScore: number; // 0-100 composite
+  conformanceScore: number; // 0-100 composite
   reliability: number; // 0-1 (pass^k)
   quality: number; // 0-100
   costToDone: number; // $ per completed task

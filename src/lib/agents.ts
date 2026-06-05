@@ -104,7 +104,7 @@ export async function saveRun(agentId: string, outcome: RunOutcome): Promise<str
     status: 'complete',
     startedAt: now,
     finishedAt: now,
-    trustScore: outcome.trustScore,
+    conformanceScore: outcome.conformanceScore,
     reliability: outcome.reliability,
     quality: outcome.quality,
     costToDone: outcome.costToDone,
