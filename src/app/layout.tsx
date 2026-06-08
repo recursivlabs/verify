@@ -25,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="https://recursiv.io" className="font-medium text-[#0e1726] hover:underline">
                 Recursiv
               </a>
+              <span className="text-[#8a95a4]"> · the trust layer for agentic systems</span>
             </span>
             <div className="flex items-center gap-1 font-mono text-[#8a95a4]">
               <a href="https://research.on.recursiv.io" className="transition-colors hover:text-[#0e1726]">
